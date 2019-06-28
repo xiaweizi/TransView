@@ -6,5 +6,8 @@
 
     <color name="bottom_color">#43FFFFFF</color>
     <color name="background">#fda328</color>
+    <color name="start_color">#5BFFFFFF</color>
+    <color name="end_color">#fff</color>
+    <color name="mask_color">#FFFFFF</color>
 
 </resources>
