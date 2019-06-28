@@ -3,9 +3,11 @@ package com.xiaweizi.myapplication;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.SeekBar;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.lang.ref.WeakReference;
 
@@ -15,12 +17,15 @@ public class MainActivity extends AppCompatActivity {
     private MyHandler mHandler;
     private SeekBar mSeekBar;
     private int mCurrentProgress = 0;
+    private ImageView mImageView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mBar = findViewById(R.id.progress_bar);
         mSeekBar = findViewById(R.id.search_bar);
+        mImageView = findViewById(R.id.iv_bg);
+
         mHandler = new MyHandler(this);
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
