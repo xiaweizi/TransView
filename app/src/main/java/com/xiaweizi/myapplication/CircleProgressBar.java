@@ -2,6 +2,8 @@ package com.xiaweizi.myapplication;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -12,47 +14,48 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.graphics.SweepGradient;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 /**
  * <pre>
- *     author : xiaweizi
  *     class  : com.xiaweizi.myapplication.CircleProgressBar
- *     e-mail : 1012126908@qq.com
  *     time   : 2019/06/28
- *     desc   :
+ *     desc   : 右上角进度
  * </pre>
  */
 public class CircleProgressBar extends View {
 
     private static final String TAG = "CircleProgressBar::";
 
-    private static final int TOTAL_PROGRESS = 100;
+    private static final int TOTAL_PROGRESS = 100; // 总进度
     private static final int MASK_DURATION = 1000; // 发光动画展示时长
-    private static final int PULSE_DURATION = 2333; // 脉冲动画时长
-    private int mCurrentProgress;
-    private Paint mBottomPaint;
-    private Paint mProgressPaint;
-    private Paint mTextPaint;
-    private Paint mMaskPaint;
-    private float mRadius = 55;
-    private float mMarginRight = 60;
-    private float mMarginTop = 70;
-    private RectF mRectF = new RectF();
-    private SweepGradient mGradient;
-    private Matrix localM;
-    private ValueAnimator mMaskAlphaAnimator;
-    private ValueAnimator mPulseAnimator;
-    private float centerX;
-    private float centerY;
-    private float value;
-    private float mMaskAlphaValue;
+    private int mCurrentProgress = 0; // 当前进度
+    private Paint mBottomPaint; // 底部环
+    private Paint mCirclePaint; // 底部圆圈背景
+    private Paint mProgressPaint; // 进度环
+    private Paint mTextPaint; // 中间文本
+    private Paint mMaskPaint; // 发光环
+    private float mRadius; // 半径
+    private float mMarginRight; // 距离右边的 margin
+    private float mMarginTop; // 距离顶部的 margin
+    private float mStrokeWidth; // 边缘宽度
+    private RectF mRectF = new RectF(); // 确定绘制的区域
+    private SweepGradient mGradient; // 脉冲渐变实现类
+    private Matrix mLocalM; // 脉冲辅助矩阵
+    private ValueAnimator mMaskAlphaAnimator; // 脉冲闪烁动画
+    private float mCenterX; // 圆心点x
+    private float mCenterY; // 圆心点y
+    private float mPulseValue; // 控制脉冲旋转的值
+    private float mMaskAlphaValue; // 控制闪光 view 的透明度
+    private Bitmap mMaskBitmap; // 发光的 bitmap
+    private int mRecoverColor; // 接收背景颜色
+    private int mInterruptColor; // 发送背景颜色
+    private float mRatio = 0; // 颜色过渡渐变的比例，用来展示背景的颜色
+    private PorterDuffXfermode mXfermode; // 重叠模仿，避免在 onDraw 中频繁创建对象
 
     public void setCurrentProgress(int progress) {
         this.mCurrentProgress = progress;
         invalidate();
-        Log.i(TAG, "setCurrentProgress: " + progress);
     }
 
     public CircleProgressBar(Context context) {
@@ -66,11 +69,11 @@ public class CircleProgressBar extends View {
     public CircleProgressBar(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         initView(context, attrs, defStyle);
-        setLayerType(LAYER_TYPE_SOFTWARE, null);
     }
 
     private void initAnimator() {
-        mMaskAlphaAnimator = ValueAnimator.ofFloat(0, 0.3f, 0.8f, 1, 0.95f, 0.9f, 0.7f, 0.6f, 0.5f, 0.4f, 0.3f, 0.1f, 0.08f, 0.04f, 0).setDuration(MASK_DURATION);
+        mMaskAlphaAnimator = ValueAnimator.ofFloat(0, 0.3f, 0.8f, 1, 0.95f, 0.9f, 0.7f, 0.6f, 0.5f, 0.4f, 0.3f, 0.1f, 0.08f, 0.04f, 0);
+        mMaskAlphaAnimator.setDuration(MASK_DURATION);
         mMaskAlphaAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
@@ -78,73 +81,88 @@ public class CircleProgressBar extends View {
                 invalidate();
             }
         });
-        // 脉冲动画
-        mPulseAnimator = ValueAnimator.ofFloat(0, 1).setDuration(PULSE_DURATION);
-        mPulseAnimator.setRepeatMode(ValueAnimator.RESTART);
-        mPulseAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        mPulseAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                value = (float) animation.getAnimatedValue();
-                int temValue = (int) (value * 100);
-                invalidate();
-                // 如果脉冲值到达 80% 则展示发光圆环
-                if (temValue == 80 && !mMaskAlphaAnimator.isRunning()) {
-                    mMaskAlphaAnimator.start();
-                }
-            }
-        });
-        mPulseAnimator.start();
+    }
+
+    public void setSend(boolean isSend) {
+        if (isSend) {
+            mRecoverColor = getResources().getColor(R.color.background_send);
+        } else {
+            mRecoverColor = getResources().getColor(R.color.background_receiver);
+        }
+    }
+
+    public void refreshValue(float value) {
+        this.mPulseValue = value;
+        int temValue = (int) (value * 100);
+        invalidate();
+        // 如果脉冲值到达 80% 则展示发光圆环
+        if (temValue == 80 && !mMaskAlphaAnimator.isRunning()) {
+            mMaskAlphaAnimator.start();
+        }
+    }
+
+    public void refreshBgColor(float radio) {
+        this.mRatio = radio;
+        invalidate();
     }
 
     private void initView(Context context, AttributeSet attrs, int defStyle) {
-        setLayerType(LAYER_TYPE_SOFTWARE, null);
-        int mStartColor = getResources().getColor(R.color.start_color);
-        int mEndColor = getResources().getColor(R.color.end_color);
-        int[] colors = new int[]{mStartColor, mEndColor, mStartColor};
-        localM = new Matrix();
+        int startColor = getResources().getColor(R.color.start_color);
+        int endColor = getResources().getColor(R.color.end_color);
+        mRecoverColor = getResources().getColor(R.color.background_receiver);
+        mInterruptColor = getResources().getColor(R.color.background_pause);
+        int[] colors = new int[]{startColor, endColor, startColor};
+        mLocalM = new Matrix();
         float[] positions = new float[]{0.3f, 0.7f, 1};
         mGradient = new SweepGradient(0, 0, colors, positions);
-        mMarginRight = 60;
-        mMarginTop = 70;
+        mXfermode = new PorterDuffXfermode(PorterDuff.Mode.SRC_IN);
+        mMarginRight = TransferProgressView.getActualValue(getContext(), 80);
+        mMarginTop = TransferProgressView.getActualValue(getContext(), 180);
+        mRadius = TransferProgressView.getActualValue(getContext(), 70);
+        mStrokeWidth = TransferProgressView.getActualValue(getContext(), 20);
         initPaint();
         initAnimator();
     }
 
     private void initPaint() {
         mBottomPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mProgressPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mMaskPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
+        mCirclePaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        mCirclePaint.setColor(getResources().getColor(R.color.background_receiver));
+        mCirclePaint.setStrokeWidth(mStrokeWidth);
+
         mBottomPaint.setStyle(Paint.Style.STROKE);
-        mBottomPaint.setStrokeWidth(15);
-        mBottomPaint.setColor(getResources().getColor(R.color.bottom_color));
+        mBottomPaint.setStrokeWidth(mStrokeWidth);
+        mBottomPaint.setColor(getResources().getColor(R.color.bottom_ring_color));
         mBottomPaint.setStrokeCap(Paint.Cap.ROUND);
 
         mProgressPaint.setStyle(Paint.Style.STROKE);
-        mProgressPaint.setStrokeWidth(15);
+        mProgressPaint.setStrokeWidth(mStrokeWidth);
         mProgressPaint.setShader(mGradient);
         mProgressPaint.setStrokeCap(Paint.Cap.ROUND);
 
         mTextPaint.setTextAlign(Paint.Align.CENTER);
         mTextPaint.setColor(Color.WHITE);
-        mTextPaint.setTextSize(26);
+        mTextPaint.setTextSize(TransferProgressView.getActualValue(getContext(), 36));
+    }
 
-        mMaskPaint.setStyle(Paint.Style.STROKE);
-        mMaskPaint.setStrokeWidth(15);
-        mMaskPaint.setColor(getResources().getColor(R.color.mask_color));
+    private void createBitmap() {
+        if (mMaskBitmap == null) {
+            mMaskBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.mask);
+        }
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        int height = getMeasuredHeight();
         int width = getMeasuredWidth();
-        Log.i(TAG, "mWidth: " + width + " mHeight: " + height);
         mRectF.set(width - mRadius * 2 - mMarginRight, mMarginTop, width - mMarginRight, mMarginTop + mRadius * 2);
-        centerX = width - mRadius - mMarginRight;
-        centerY = mMarginTop + mRadius;
+        mCenterX = width - mRadius - mMarginRight;
+        mCenterY = mMarginTop + mRadius;
     }
 
 
@@ -163,6 +181,8 @@ public class CircleProgressBar extends View {
      * 绘制底部基础的圆环
      */
     private void drawBottomRing(Canvas canvas) {
+        mCirclePaint.setColor(getBgColor(mRatio));
+        canvas.drawCircle(mCenterX, mCenterY, mRadius + TransferProgressView.getActualValue(getContext(), 12), mCirclePaint);
         canvas.drawArc(mRectF, 360, 360, false, mBottomPaint);
     }
 
@@ -171,8 +191,14 @@ public class CircleProgressBar extends View {
      */
     private void drawMaskCircle(Canvas canvas) {
         mMaskPaint.setAlpha((int) (255 * mMaskAlphaValue));
-        mMaskPaint.setShadowLayer(12, 0, 0, Color.WHITE);
-        canvas.drawCircle(centerX, centerY, mRadius, mMaskPaint);
+        createBitmap();
+        canvas.save();
+        Matrix m = new Matrix();
+        float scale = (mRadius * 2 + TransferProgressView.getActualValue(getContext(), 70)) / mMaskBitmap.getWidth();
+        m.setScale(scale, scale);
+        canvas.translate(mCenterX - (mMaskBitmap.getWidth() >> 1) * scale, mCenterY - (mMaskBitmap.getHeight() >> 1) * scale);
+        canvas.drawBitmap(mMaskBitmap, m, mMaskPaint);
+        canvas.restore();
     }
 
 
@@ -182,18 +208,19 @@ public class CircleProgressBar extends View {
     private void drawProgressRing(Canvas canvas) {
         int id = canvas.saveLayer(0, 0, getWidth(), getHeight(), null, Canvas.ALL_SAVE_FLAG);
         mProgressPaint.setShader(null);
-        mProgressPaint.setStrokeWidth(15);
+        mProgressPaint.setStrokeWidth(mStrokeWidth);
         float sweepAngle = mCurrentProgress * 1f / TOTAL_PROGRESS * 360;
         canvas.drawArc(mRectF, -90, sweepAngle, false, mProgressPaint);
-        mPath.reset();
         canvas.save();
-        canvas.rotate(360 * value, centerX, centerY);
+        // 通过控制 mPulseValue 的值，来完成脉冲的旋转
+        canvas.rotate(360 * mPulseValue, mCenterX, mCenterY);
         mProgressPaint.setShader(mGradient);
-        localM.setTranslate(centerX, centerY);
-        mGradient.setLocalMatrix(localM);
-        mPath.addCircle(centerX, centerY, mRadius, Path.Direction.CCW);
-        mProgressPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        mProgressPaint.setStrokeWidth(20);
+        mLocalM.setTranslate(mCenterX, mCenterY);
+        mGradient.setLocalMatrix(mLocalM);
+        mPath.reset();
+        mPath.addCircle(mCenterX, mCenterY, mRadius, Path.Direction.CCW);
+        mProgressPaint.setXfermode(mXfermode);
+        mProgressPaint.setStrokeWidth(mStrokeWidth + 5); // 防止看到黑色边框
         canvas.drawPath(mPath, mProgressPaint);
         mProgressPaint.setXfermode(null);
         canvas.restore();
@@ -204,7 +231,20 @@ public class CircleProgressBar extends View {
      * 绘制中心文字
      */
     private void drawCenterText(Canvas canvas) {
-        canvas.drawText(mCurrentProgress + " %", centerX, centerY - ((mTextPaint.descent() + mTextPaint.ascent()) / 2), mTextPaint);
+        canvas.drawText(mCurrentProgress + " %", mCenterX, mCenterY - ((mTextPaint.descent() + mTextPaint.ascent()) / 2), mTextPaint);
     }
 
+    private int getBgColor(float radio) {
+        int redStart = Color.red(mRecoverColor);
+        int blueStart = Color.blue(mRecoverColor);
+        int greenStart = Color.green(mRecoverColor);
+        int redEnd = Color.red(mInterruptColor);
+        int blueEnd = Color.blue(mInterruptColor);
+        int greenEnd = Color.green(mInterruptColor);
+
+        int red = (int) (redStart + ((redEnd - redStart) * radio + 0.5));
+        int greed = (int) (greenStart + ((greenEnd - greenStart) * radio + 0.5));
+        int blue = (int) (blueStart + ((blueEnd - blueStart) * radio + 0.5));
+        return Color.argb(255,red, greed, blue);
+    }
 }

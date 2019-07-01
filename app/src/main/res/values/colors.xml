@@ -4,10 +4,11 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
 
-    <color name="bottom_color">#43FFFFFF</color>
-    <color name="background">#fda328</color>
+    <color name="bottom_ring_color">#43FFFFFF</color>
+    <color name="background_receiver">#fd9827</color>
+    <color name="background_send">#006ee7</color>
+    <color name="background_pause">#9a9a9a</color>
     <color name="start_color">#5BFFFFFF</color>
     <color name="end_color">#fff</color>
-    <color name="mask_color">#FFFFFF</color>
 
 </resources>

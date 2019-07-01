@@ -6,28 +6,13 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <ImageView
-        android:id="@+id/iv_bg"
-        android:layout_width="wrap_content"
+    <com.xiaweizi.myapplication.TransferProgressView
+        android:id="@+id/progress_view"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:scaleType="fitXY"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.xiaweizi.myapplication.CircleProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="match_parent"
-        android:background="@color/background"
-        android:layout_height="140dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <SeekBar
-        android:id="@+id/search_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/progress_bar" />
 
     <Button
         android:id="@+id/start"
@@ -36,7 +21,7 @@
         android:layout_marginTop="30dp"
         android:text="开始"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/search_bar" />
+        app:layout_constraintTop_toBottomOf="@id/progress_view" />
 
     <Button
         android:id="@+id/stop"
@@ -46,5 +31,33 @@
         android:text="暂停"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/start" />
+
+    <Button
+        android:id="@+id/interrupt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="中断"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stop" />
+
+    <Button
+        android:id="@+id/recover"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="恢复"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/interrupt" />
+
+    <Button
+        android:id="@+id/check"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="切换"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/recover" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
