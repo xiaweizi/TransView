@@ -14,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
     private MyHandler mHandler;
     private int mCurrentProgress = 0;
     private TransferProgressView mProgressView;
+    private SearchRipplesView mSearchView;
 
 
     @Override
@@ -21,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mProgressView = findViewById(R.id.progress_view);
+        mSearchView = findViewById(R.id.search_view);
         mHandler = new MyHandler(this);
         mHandler.sendEmptyMessage(1);
         mProgressView.start();
@@ -28,19 +30,21 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mProgressView.resume();
-                if (!mHandler.hasMessages(1)) {
-                    mHandler.sendEmptyMessage(1);
-                }
+//                mProgressView.resume();
+//                if (!mHandler.hasMessages(1)) {
+//                    mHandler.sendEmptyMessage(1);
+//                }
+                mSearchView.resume();
             }
         });
         findViewById(R.id.stop).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mProgressView.pause();
-                if (mHandler.hasMessages(1)) {
-                    mHandler.removeMessages(1);
-                }
+//                mProgressView.pause();
+//                if (mHandler.hasMessages(1)) {
+//                    mHandler.removeMessages(1);
+//                }
+                mSearchView.pause();
             }
         });
 

@@ -4,14 +4,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#fff"
     tools:context=".MainActivity">
 
     <com.xiaweizi.myapplication.TransferProgressView
         android:id="@+id/progress_view"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <com.xiaweizi.myapplication.SearchRipplesView
+        android:id="@+id/search_view"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <ImageView
+        app:layout_constraintLeft_toLeftOf="@id/search_view"
+        app:layout_constraintRight_toRightOf="@id/search_view"
+        app:layout_constraintTop_toTopOf="@id/search_view"
+        app:layout_constraintBottom_toBottomOf="@id/search_view"
+        android:src="@drawable/dd"
+        android:scaleX="0.5"
+        android:scaleY="0.5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
 
     <Button
@@ -21,7 +41,7 @@
         android:layout_marginTop="30dp"
         android:text="开始"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/progress_view" />
+        app:layout_constraintTop_toBottomOf="@id/search_view" />
 
     <Button
         android:id="@+id/stop"
@@ -38,11 +58,13 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:text="中断"
+        android:visibility="gone"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/stop" />
 
     <Button
         android:id="@+id/recover"
+        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
@@ -52,6 +74,7 @@
 
     <Button
         android:id="@+id/check"
+        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"

@@ -10,5 +10,7 @@
     <color name="background_pause">#9a9a9a</color>
     <color name="start_color">#5BFFFFFF</color>
     <color name="end_color">#fff</color>
+    <color name="ripple_color">#50a2ff</color>
+
 
 </resources>
