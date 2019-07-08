@@ -48,7 +48,6 @@ public class SearchRipplesView extends View {
     private void initView(Context context, AttributeSet attrs, int defStyle) {
         int rippleColor = getResources().getColor(R.color.ripple_color);
         initPaint(rippleColor);
-        initAnimator();
     }
 
     private void initPaint(int rippleColor) {
@@ -61,59 +60,58 @@ public class SearchRipplesView extends View {
      * 初始化动画，使用三个动画循环执行
      */
     private void initAnimator() {
-        valueAnimator1 = ValueAnimator.ofFloat(0, ANIMATOR_DURATION);
-        valueAnimator1.setRepeatCount(ValueAnimator.INFINITE);
-        valueAnimator1.setDuration(ANIMATOR_DURATION);
-        valueAnimator1.setInterpolator(new AccelerateDecelerateInterpolator());
-        valueAnimator1.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                value1 = (float) animation.getAnimatedValue();
-                invalidate();
-            }
-        });
-        valueAnimator2 = ValueAnimator.ofFloat(0, ANIMATOR_DURATION);
-        valueAnimator2.setRepeatCount(ValueAnimator.INFINITE);
-        valueAnimator2.setDuration(ANIMATOR_DURATION);
-        valueAnimator2.setInterpolator(new AccelerateDecelerateInterpolator());
-        valueAnimator2.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                value2 = (float) animation.getAnimatedValue();
-                invalidate();
-            }
-        });
-        valueAnimator3 = ValueAnimator.ofFloat(0, ANIMATOR_DURATION);
-        valueAnimator3.setRepeatCount(ValueAnimator.INFINITE);
-        valueAnimator3.setDuration(ANIMATOR_DURATION);
-        valueAnimator3.setInterpolator(new AccelerateDecelerateInterpolator());
-        valueAnimator3.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                value3 = (float) animation.getAnimatedValue();
-                invalidate();
-            }
-        });
-
-        valueAnimator4 = ValueAnimator.ofFloat(0, ANIMATOR_DURATION);
-        valueAnimator4.setRepeatCount(ValueAnimator.INFINITE);
-        valueAnimator4.setDuration(ANIMATOR_DURATION);
-        valueAnimator4.setInterpolator(new AccelerateDecelerateInterpolator());
-        valueAnimator4.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                value4 = (float) animation.getAnimatedValue();
-                invalidate();
-            }
-        });
-
-        valueAnimator1.start();
-        valueAnimator2.setStartDelay((long) SINGLE_DURATION);
-        valueAnimator2.start();
-        valueAnimator3.setStartDelay((long) SINGLE_DURATION * 2);
-        valueAnimator3.start();
-        valueAnimator4.setStartDelay((long) SINGLE_DURATION * 3);
-        valueAnimator4.start();
+        if (valueAnimator1 == null) {
+            valueAnimator1 = ValueAnimator.ofFloat(0, ANIMATOR_DURATION);
+            valueAnimator1.setRepeatCount(ValueAnimator.INFINITE);
+            valueAnimator1.setDuration(ANIMATOR_DURATION);
+            valueAnimator1.setInterpolator(new AccelerateDecelerateInterpolator());
+            valueAnimator1.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    value1 = (float) animation.getAnimatedValue();
+                    invalidate();
+                }
+            });
+        }
+        if (valueAnimator2 == null) {
+            valueAnimator2 = ValueAnimator.ofFloat(0, ANIMATOR_DURATION);
+            valueAnimator2.setRepeatCount(ValueAnimator.INFINITE);
+            valueAnimator2.setDuration(ANIMATOR_DURATION);
+            valueAnimator2.setInterpolator(new AccelerateDecelerateInterpolator());
+            valueAnimator2.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    value2 = (float) animation.getAnimatedValue();
+                    invalidate();
+                }
+            });
+        }
+        if (valueAnimator3 == null) {
+            valueAnimator3 = ValueAnimator.ofFloat(0, ANIMATOR_DURATION);
+            valueAnimator3.setRepeatCount(ValueAnimator.INFINITE);
+            valueAnimator3.setDuration(ANIMATOR_DURATION);
+            valueAnimator3.setInterpolator(new AccelerateDecelerateInterpolator());
+            valueAnimator3.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    value3 = (float) animation.getAnimatedValue();
+                    invalidate();
+                }
+            });
+        }
+        if (valueAnimator4 == null) {
+            valueAnimator4 = ValueAnimator.ofFloat(0, ANIMATOR_DURATION);
+            valueAnimator4.setRepeatCount(ValueAnimator.INFINITE);
+            valueAnimator4.setDuration(ANIMATOR_DURATION);
+            valueAnimator4.setInterpolator(new AccelerateDecelerateInterpolator());
+            valueAnimator4.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    value4 = (float) animation.getAnimatedValue();
+                    invalidate();
+                }
+            });
+        }
     }
 
 
@@ -152,6 +150,25 @@ public class SearchRipplesView extends View {
         canvas.drawCircle(mCenterX, mCenterY, radius, mPaint);
     }
 
+    public void start() {
+        initAnimator();
+        valueAnimator1.start();
+        valueAnimator2.setStartDelay((long) SINGLE_DURATION);
+        valueAnimator2.start();
+        valueAnimator3.setStartDelay((long) SINGLE_DURATION * 2);
+        valueAnimator3.start();
+        valueAnimator4.setStartDelay((long) SINGLE_DURATION * 3);
+        valueAnimator4.start();
+    }
+
+    public void stop() {
+        initAnimator();
+        valueAnimator1.end();
+        valueAnimator2.end();
+        valueAnimator3.end();
+        valueAnimator4.end();
+    }
+
     public void resume() {
         valueAnimator1.resume();
         valueAnimator2.resume();
@@ -171,6 +188,21 @@ public class SearchRipplesView extends View {
             valueAnimator1.end();
             valueAnimator1.removeAllUpdateListeners();
             valueAnimator1 = null;
+        }
+        if (valueAnimator2 != null) {
+            valueAnimator2.end();
+            valueAnimator2.removeAllUpdateListeners();
+            valueAnimator2 = null;
+        }
+        if (valueAnimator3 != null) {
+            valueAnimator3.end();
+            valueAnimator3.removeAllUpdateListeners();
+            valueAnimator3 = null;
+        }
+        if (valueAnimator4 != null) {
+            valueAnimator4.end();
+            valueAnimator4.removeAllUpdateListeners();
+            valueAnimator4 = null;
         }
     }
 

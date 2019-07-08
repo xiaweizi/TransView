@@ -9,12 +9,14 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.graphics.SweepGradient;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.WindowManager;
 
 /**
  * <pre>
@@ -29,6 +31,8 @@ public class CircleProgressBar extends View {
 
     private static final int TOTAL_PROGRESS = 100; // 总进度
     private static final int MASK_DURATION = 1000; // 发光动画展示时长
+    private static final int MASK_SHOW_VALUE_SEND = 65; // 发送触发发光的阈值
+    private static final int MASK_SHOW_VALUE_RECEIVER = 80; // 接收触发发光的阈值
     private int mCurrentProgress = 0; // 当前进度
     private Paint mBottomPaint; // 底部环
     private Paint mCirclePaint; // 底部圆圈背景
@@ -51,7 +55,9 @@ public class CircleProgressBar extends View {
     private int mRecoverColor; // 接收背景颜色
     private int mInterruptColor; // 发送背景颜色
     private float mRatio = 0; // 颜色过渡渐变的比例，用来展示背景的颜色
+    private boolean mSendMode = false; // 是否是发送模式
     private PorterDuffXfermode mXfermode; // 重叠模仿，避免在 onDraw 中频繁创建对象
+    private int mScreenWidth; // 屏幕宽度
 
     public void setCurrentProgress(int progress) {
         this.mCurrentProgress = progress;
@@ -84,6 +90,7 @@ public class CircleProgressBar extends View {
     }
 
     public void setSend(boolean isSend) {
+        mSendMode = isSend;
         if (isSend) {
             mRecoverColor = getResources().getColor(R.color.background_send);
         } else {
@@ -91,13 +98,21 @@ public class CircleProgressBar extends View {
         }
     }
 
-    public void refreshValue(float value) {
+    /**
+     * @param value 脉冲进度值
+     * @param isShowMask 是否展示发光图片
+     */
+    public void refreshValue(float value, boolean isShowMask) {
         this.mPulseValue = value;
         int temValue = (int) (value * 100);
         invalidate();
-        // 如果脉冲值到达 80% 则展示发光圆环
-        if (temValue == 80 && !mMaskAlphaAnimator.isRunning()) {
-            mMaskAlphaAnimator.start();
+        // 如果 (sendMode && >= 65) || (!sendMode && >= 80) 则展示发光圆环
+        if (isShowMask && !mMaskAlphaAnimator.isRunning()) {
+            if (mSendMode && temValue >= MASK_SHOW_VALUE_SEND) {
+                mMaskAlphaAnimator.start();
+            } else if (!mSendMode && temValue >= MASK_SHOW_VALUE_RECEIVER) {
+                mMaskAlphaAnimator.start();
+            }
         }
     }
 
@@ -107,8 +122,9 @@ public class CircleProgressBar extends View {
     }
 
     private void initView(Context context, AttributeSet attrs, int defStyle) {
-        int startColor = getResources().getColor(R.color.start_color);
-        int endColor = getResources().getColor(R.color.end_color);
+        mScreenWidth = getScreenWidth();
+        int startColor = getResources().getColor(R.color.transfer_start_color);
+        int endColor = getResources().getColor(R.color.transfer_end_color);
         mRecoverColor = getResources().getColor(R.color.background_receiver);
         mInterruptColor = getResources().getColor(R.color.background_pause);
         int[] colors = new int[]{startColor, endColor, startColor};
@@ -116,10 +132,10 @@ public class CircleProgressBar extends View {
         float[] positions = new float[]{0.3f, 0.7f, 1};
         mGradient = new SweepGradient(0, 0, colors, positions);
         mXfermode = new PorterDuffXfermode(PorterDuff.Mode.SRC_IN);
-        mMarginRight = TransferProgressView.getActualValue(getContext(), 80);
-        mMarginTop = TransferProgressView.getActualValue(getContext(), 180);
-        mRadius = TransferProgressView.getActualValue(getContext(), 70);
-        mStrokeWidth = TransferProgressView.getActualValue(getContext(), 20);
+        mMarginRight = getActualValue(80);
+        mMarginTop = getActualValue(180);
+        mRadius = getActualValue(70);
+        mStrokeWidth = getActualValue(20);
         initPaint();
         initAnimator();
     }
@@ -147,12 +163,12 @@ public class CircleProgressBar extends View {
 
         mTextPaint.setTextAlign(Paint.Align.CENTER);
         mTextPaint.setColor(Color.WHITE);
-        mTextPaint.setTextSize(TransferProgressView.getActualValue(getContext(), 36));
+        mTextPaint.setTextSize(getActualValue(36));
     }
 
     private void createBitmap() {
         if (mMaskBitmap == null) {
-            mMaskBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.mask);
+            mMaskBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.transfer_mask_image);
         }
     }
 
@@ -182,7 +198,7 @@ public class CircleProgressBar extends View {
      */
     private void drawBottomRing(Canvas canvas) {
         mCirclePaint.setColor(getBgColor(mRatio));
-        canvas.drawCircle(mCenterX, mCenterY, mRadius + TransferProgressView.getActualValue(getContext(), 12), mCirclePaint);
+        canvas.drawCircle(mCenterX, mCenterY, mRadius + getActualValue(12), mCirclePaint);
         canvas.drawArc(mRectF, 360, 360, false, mBottomPaint);
     }
 
@@ -194,7 +210,7 @@ public class CircleProgressBar extends View {
         createBitmap();
         canvas.save();
         Matrix m = new Matrix();
-        float scale = (mRadius * 2 + TransferProgressView.getActualValue(getContext(), 70)) / mMaskBitmap.getWidth();
+        float scale = (mRadius * 2 + getActualValue(70)) / mMaskBitmap.getWidth();
         m.setScale(scale, scale);
         canvas.translate(mCenterX - (mMaskBitmap.getWidth() >> 1) * scale, mCenterY - (mMaskBitmap.getHeight() >> 1) * scale);
         canvas.drawBitmap(mMaskBitmap, m, mMaskPaint);
@@ -246,5 +262,18 @@ public class CircleProgressBar extends View {
         int greed = (int) (greenStart + ((greenEnd - greenStart) * radio + 0.5));
         int blue = (int) (blueStart + ((blueEnd - blueStart) * radio + 0.5));
         return Color.argb(255,red, greed, blue);
+    }
+
+    public int getScreenWidth() {
+        if (mScreenWidth != 0) return mScreenWidth;
+        WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        Point outSize = new Point();
+        if (wm == null) return 0;
+        wm.getDefaultDisplay().getSize(outSize);
+        return outSize.x;
+    }
+
+    public float getActualValue(float srcValue) {
+        return srcValue * mScreenWidth / 1080;
     }
 }

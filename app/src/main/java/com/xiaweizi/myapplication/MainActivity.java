@@ -11,6 +11,7 @@ import java.lang.ref.WeakReference;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int MSG = 1;
     private MyHandler mHandler;
     private int mCurrentProgress = 0;
     private TransferProgressView mProgressView;
@@ -24,53 +25,77 @@ public class MainActivity extends AppCompatActivity {
         mProgressView = findViewById(R.id.progress_view);
         mSearchView = findViewById(R.id.search_view);
         mHandler = new MyHandler(this);
-        mHandler.sendEmptyMessage(1);
-        mProgressView.start();
         mProgressView.initMode(false);
-        findViewById(R.id.start).setOnClickListener(new View.OnClickListener() {
+
+        findViewById(R.id.bt_start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                mProgressView.resume();
-//                if (!mHandler.hasMessages(1)) {
-//                    mHandler.sendEmptyMessage(1);
-//                }
-                mSearchView.resume();
+                if (!mHandler.hasMessages(MSG)) {
+                    mHandler.sendEmptyMessage(MSG);
+                }
+                mProgressView.start();
             }
         });
-        findViewById(R.id.stop).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.bt_complete).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                mProgressView.pause();
-//                if (mHandler.hasMessages(1)) {
-//                    mHandler.removeMessages(1);
-//                }
-                mSearchView.pause();
+                if (mHandler.hasMessages(MSG)) {
+                    mHandler.removeMessages(MSG);
+                }
+                mProgressView.complete();
             }
         });
 
-        findViewById(R.id.interrupt).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.bt_resume).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mProgressView.interrupt();
-                if (mHandler.hasMessages(1)) {
-                    mHandler.removeMessages(1);
+                if (!mHandler.hasMessages(MSG)) {
+                    mHandler.sendEmptyMessage(MSG);
                 }
+                mProgressView.resume();
             }
         });
-        findViewById(R.id.recover).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.bt_pause).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!mHandler.hasMessages(1)) {
-                    mHandler.sendEmptyMessage(1);
+                if (mHandler.hasMessages(MSG)) {
+                    mHandler.removeMessages(MSG);
+                }
+                mProgressView.getPaddingStart();
+            }
+        });
+
+        findViewById(R.id.bt_interrupt).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mHandler.hasMessages(MSG)) {
+                    mHandler.removeMessages(MSG);
+                }
+                mProgressView.interrupt();
+            }
+        });
+
+        findViewById(R.id.bt_recover).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!mHandler.hasMessages(MSG)) {
+                    mHandler.sendEmptyMessage(MSG);
                 }
                 mProgressView.recover();
             }
         });
 
-        findViewById(R.id.check).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.bt_start_ripples).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mProgressView.initMode(true);
+                mSearchView.start();
+            }
+        });
+
+        findViewById(R.id.bt_stop_ripples).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mSearchView.stop();
             }
         });
     }
@@ -98,10 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 theActivity.mCurrentProgress = 0;
             }
             theActivity.mProgressView.setProgress(theActivity.mCurrentProgress);
-            sendEmptyMessageDelayed(1, 80);
-
-//            theActivity.mBar.setCurrentProgress(50);
-
+            sendEmptyMessageDelayed(MSG, 80);
         }
     }
 }
