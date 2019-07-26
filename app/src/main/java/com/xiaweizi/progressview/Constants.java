@@ -1,4 +1,4 @@
-package com.xiaweizi.myapplication;
+package com.xiaweizi.progressview;
 
 /**
  * <pre>

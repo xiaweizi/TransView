@@ -8,7 +8,7 @@
     tools:context=".MainActivity">
 
 
-    <com.xiaweizi.myapplication.TransferProgressView
+    <com.xiaweizi.progressview.TransferProgressView
         android:id="@+id/progress_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -88,7 +88,7 @@
     </LinearLayout>
 
 
-    <com.xiaweizi.myapplication.SearchRipplesView
+    <com.xiaweizi.progressview.SearchRipplesView
         android:id="@+id/search_view"
         android:layout_width="200dp"
         android:layout_height="wrap_content"

@@ -1,4 +1,4 @@
-package com.xiaweizi.myapplication;
+package com.xiaweizi.progressview;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;

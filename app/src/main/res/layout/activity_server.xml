@@ -14,7 +14,7 @@
         app:layout_constraintBottom_toBottomOf="@id/pv_server"
         app:layout_constraintTop_toTopOf="@id/pv_server" />
 
-    <com.xiaweizi.myapplication.TransferProgressView
+    <com.xiaweizi.progressview.TransferProgressView
         android:id="@+id/pv_server"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
