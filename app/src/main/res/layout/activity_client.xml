@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,28 +7,138 @@
     android:orientation="vertical"
     tools:context=".ClientActivity">
 
-    <TextView
-        android:text="push"
-        android:id="@+id/tv_push"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <View
+        android:id="@+id/view_temp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/transfer_send_color"
+        app:layout_constraintBottom_toBottomOf="@id/pv_client"
+        app:layout_constraintTop_toTopOf="@id/pv_client" />
+
+    <com.xiaweizi.myapplication.TransferProgressView
+        android:id="@+id/pv_client"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:text="connect"
+        android:id="@+id/bt_connect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/shape_button_bg_send"
         android:onClick="connect"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:text="连接"
+        android:textColor="#fff"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@id/bt_disconnect"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pv_client" />
 
     <Button
-        android:text="send"
-        android:onClick="send"
+        android:id="@+id/bt_disconnect"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <Button
-        android:text="disconnect"
+        android:layout_height="wrap_content"
+        android:background="@drawable/shape_button_bg_send"
         android:onClick="disconnect"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:text="断开"
+        android:textColor="#fff"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/bt_connect"
+        app:layout_constraintEnd_toStartOf="@id/bt_start"
+        app:layout_constraintStart_toEndOf="@id/bt_connect"
+        app:layout_constraintTop_toTopOf="@id/bt_connect" />
 
-</LinearLayout>
+    <Button
+        android:id="@+id/bt_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/shape_button_bg_send"
+        android:onClick="start"
+        android:text="开始"
+        android:textColor="#fff"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/bt_connect"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/bt_disconnect"
+        app:layout_constraintTop_toTopOf="@id/bt_connect" />
+
+    <Button
+        android:id="@+id/bt_resume"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/shape_button_bg_send"
+        android:onClick="resume"
+        android:text="resume"
+        android:textAllCaps="false"
+        android:textColor="#fff"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@id/bt_pause"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/bt_connect" />
+
+    <Button
+        android:id="@+id/bt_pause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/shape_button_bg_send"
+        android:onClick="pause"
+        android:text="pause"
+        android:textAllCaps="false"
+        android:textColor="#fff"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/bt_resume"
+        app:layout_constraintTop_toTopOf="@id/bt_resume" />
+
+    <Button
+        android:id="@+id/bt_recover"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/shape_button_bg_send"
+        android:onClick="recover"
+        android:text="recover"
+        android:textAllCaps="false"
+        android:textColor="#fff"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@id/lv_client"
+        app:layout_constraintEnd_toStartOf="@id/bt_interrupt"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/bt_resume" />
+
+    <Button
+        android:id="@+id/bt_interrupt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/shape_button_bg_send"
+        android:onClick="interrupt"
+        android:text="interrupt"
+        android:textAllCaps="false"
+        android:textColor="#fff"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/bt_recover"
+        app:layout_constraintTop_toTopOf="@id/bt_recover" />
+
+    <ListView
+        android:id="@+id/lv_client"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:divider="@null"
+        android:scrollbars="none"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/bt_recover" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

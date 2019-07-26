@@ -1,9 +1,11 @@
 package com.xiaweizi.myapplication;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -13,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.lang.ref.WeakReference;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
@@ -20,60 +23,141 @@ import java.util.concurrent.Executors;
 
 public class ClientActivity extends AppCompatActivity {
     private static final String TAG = "ClientActivity::";
-    private TextView mTextView;
     private static final String HOST = "10.0.2.2";
+    private static final int MSG = 1;
+    private static final int DURATION = 60;
     public static final int PORT = 5000;
     private PrintWriter printWriter;
     private BufferedReader in;
     private ExecutorService mExecutorService = null;
-    private String receiveMsg;
+    private TransferProgressView mProgressView;
+    private ListView mListView;
+    private MyAdapter mAdapter;
+    private MyHandler mHandler;
+    private int mProgress = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client);
-        mTextView = findViewById(R.id.tv_push);
+        initView();
+        mHandler = new MyHandler(this);
         mExecutorService = Executors.newCachedThreadPool();
+    }
 
+    private void initView() {
+        getWindow().setStatusBarColor(getResources().getColor(R.color.transfer_send_color));
+        mProgressView = findViewById(R.id.pv_client);
+        mProgressView.initMode(true);
+        mListView = findViewById(R.id.lv_client);
+        mAdapter = new MyAdapter(this);
+        mListView.setAdapter(mAdapter);
+    }
+
+    private void addData(final String msg) {
+        if (mAdapter != null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mAdapter.addData(msg);
+                    mListView.smoothScrollToPosition(mAdapter.getCount() - 1);
+                }
+            });
+        }
     }
 
     public void connect(View view) {
-        mExecutorService.execute(new connectService());  //在一个新的线程中请求 Socket 连接
-    }
-
-    public void send(View view) {
-        mExecutorService.execute(new sendService("1234"));
+        if (mExecutorService != null) {
+            mExecutorService.execute(new connectService());  //在一个新的线程中请求 Socket 连接
+        }
     }
 
     public void disconnect(View view) {
-        mExecutorService.execute(new sendService("0"));
+        sendMessage(Constants.DISCONNECT);
+    }
+
+    public void start(View view) {
+        sendMessage(Constants.START);
+        if (!mHandler.hasMessages(MSG)) {
+            mProgress = 0;
+            mHandler.sendEmptyMessage(MSG);
+        }
+        mProgressView.start();
+    }
+
+    public void pause(View view) {
+        sendMessage(Constants.PAUSE);
+        if (mHandler.hasMessages(MSG)) {
+            mHandler.removeMessages(MSG);
+        }
+        mProgressView.pause();
+    }
+
+    public void resume(View view) {
+        sendMessage(Constants.RESUME);
+        if (!mHandler.hasMessages(MSG)) {
+            mHandler.sendEmptyMessage(MSG);
+        }
+        mProgressView.resume();
+    }
+
+    public void recover(View view) {
+        sendMessage(Constants.RECOVER);
+        if (!mHandler.hasMessages(MSG)) {
+            mHandler.sendEmptyMessage(MSG);
+        }
+        mProgressView.recover();
+    }
+
+    public void interrupt(View view) {
+        sendMessage(Constants.INTERRUPT);
+        if (mHandler.hasMessages(MSG)) {
+            mHandler.removeMessages(MSG);
+        }
+        mProgressView.interrupt();
+    }
+
+    private void sendMessage(int msg) {
+        if (mExecutorService != null) {
+            mExecutorService.execute(new sendService(msg));
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mProgressView.release();
     }
 
     private class sendService implements Runnable {
-        private String msg;
+        private int msg;
 
-        sendService(String msg) {
+        sendService(int msg) {
             this.msg = msg;
         }
 
         @Override
         public void run() {
-            printWriter.println(this.msg);
+            if (printWriter != null) {
+                printWriter.println(this.msg);
+            } else {
+                addData("已断开连接");
+            }
         }
     }
 
     private class connectService implements Runnable {
         @Override
-        public void run() {//可以考虑在此处添加一个while循环，结合下面的catch语句，实现Socket对象获取失败后的超时重连，直到成功建立Socket连接
+        public void run() {
             try {
-                Socket socket = new Socket(HOST, PORT);      //步骤一
+                Socket socket = new Socket(HOST, PORT);
                 socket.setSoTimeout(100000);
-                printWriter = new PrintWriter(new BufferedWriter(new OutputStreamWriter(   //步骤二
+                printWriter = new PrintWriter(new BufferedWriter(new OutputStreamWriter(
                         socket.getOutputStream(), StandardCharsets.UTF_8)), true);
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
                 receiveMsg();
             } catch (Exception e) {
-                Log.e(TAG, ("connectService:" + e.getMessage()));   //如果Socket对象获取失败，即连接建立失败，会走到这段逻辑
+                addData(e.getMessage());
             }
         }
     }
@@ -81,19 +165,40 @@ public class ClientActivity extends AppCompatActivity {
     private void receiveMsg() {
         try {
             while (true) {                                      //步骤三
+                String receiveMsg;
                 if ((receiveMsg = in.readLine()) != null) {
                     Log.d(TAG, "receiveMsg:" + receiveMsg);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mTextView.setText(receiveMsg + "\n\n" + mTextView.getText());
-                        }
-                    });
+                    addData("receive msg: " + receiveMsg);
                 }
             }
         } catch (IOException e) {
-            Log.e(TAG, "receiveMsg: " + e);
-            e.printStackTrace();
+            addData(e.getMessage());
+        }
+    }
+
+    static class MyHandler extends Handler {
+        WeakReference<ClientActivity> mActivity;
+
+        MyHandler(ClientActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            ClientActivity theActivity = mActivity.get();
+            if (theActivity == null || theActivity.isFinishing()) {
+                return;
+            }
+            if (theActivity.mProgress >= 100) {
+                theActivity.mProgressView.complete();
+                removeMessages(MSG);
+                theActivity.sendMessage(Constants.COMPLETE);
+            } else {
+                theActivity.mProgress += 1;
+                sendEmptyMessageDelayed(MSG, DURATION);
+            }
+            theActivity.sendMessage(theActivity.mProgress);
+            theActivity.mProgressView.setProgress(theActivity.mProgress);
         }
     }
 

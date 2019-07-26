@@ -3,18 +3,15 @@ package com.xiaweizi.myapplication;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
@@ -155,6 +152,7 @@ public class TransferProgressView extends RelativeLayout {
             mRunningAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
+                    if (mIsInterrupt) return;
                     float value = (float) animation.getAnimatedValue();
                     value = value > 1 ? value - 1 : value;
                     refreshValue(value);
@@ -223,6 +221,7 @@ public class TransferProgressView extends RelativeLayout {
                         startValue = startValue > 1 ? startValue - 1 : startValue;
                         float endValue = startValue + 1;
                         initRunningAnimator(startValue, endValue);
+                        mRunningAnimator.setStartDelay(0);
                         mRunningAnimator.start();
                     }
                 }
@@ -400,12 +399,12 @@ public class TransferProgressView extends RelativeLayout {
     }
 
     private void setWindowBackGround(float radio) {
-        if (getContext() != null && getContext() instanceof Activity) {
-            Window window = ((Activity) getContext()).getWindow();
-            if (window != null) {
-                window.setBackgroundDrawable(new ColorDrawable(getBgColor(radio)));
-            }
-        }
+//        if (getContext() != null && getContext() instanceof Activity) {
+//            Window window = ((Activity) getContext()).getWindow();
+//            if (window != null) {
+//                window.setBackgroundDrawable(new ColorDrawable(getBgColor(radio)));
+//            }
+//        }
     }
 
     private int getBgColor(float radio) {
