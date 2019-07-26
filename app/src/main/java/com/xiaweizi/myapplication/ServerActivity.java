@@ -2,6 +2,7 @@ package com.xiaweizi.myapplication;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,18 +21,88 @@ import java.util.concurrent.Executors;
 public class ServerActivity extends AppCompatActivity {
 
     private static final String TAG = "ServerActivity::";
+    private TransferProgressView mProgressView;
+    private MyAdapter mAdapter;
+    private ListView mListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server);
-        ExecutorService mExecutorService = Executors.newCachedThreadPool();
+        initView();
+        ExecutorService executorService = Executors.newCachedThreadPool();
         try {
             ServerSocket server = new ServerSocket(ClientActivity.PORT);
-            mExecutorService.execute(new Service(server));
+            executorService.execute(new Service(server));
         } catch (Exception e) {
             Log.i(TAG, "onCreate: " + e);
         }
+    }
+
+    private void initView() {
+        getWindow().setStatusBarColor(getResources().getColor(R.color.transfer_receiver_color));
+        mProgressView = findViewById(R.id.pv_server);
+        mProgressView.initMode(false);
+        mListView = findViewById(R.id.lv_server);
+        mAdapter = new MyAdapter(this);
+        mListView.setAdapter(mAdapter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mProgressView.release();
+    }
+
+    private void addData(final String msg) {
+        if (mAdapter != null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mAdapter.addData(msg);
+                    mListView.smoothScrollToPosition(mAdapter.getCount() - 1);
+                }
+            });
+        }
+    }
+
+    private void updateProgress(final String msg) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                int progress = Constants.DEFAULT;
+                try {
+                    progress = Integer.parseInt(msg);
+                } catch (Exception e) {
+                    addData(e.getMessage());
+                }
+                switch (progress) {
+                    case Constants.START:
+                        mProgressView.start();
+                        break;
+                    case Constants.COMPLETE:
+                        mProgressView.complete();
+                        break;
+                    case Constants.RESUME:
+                        mProgressView.resume();
+                        break;
+                    case Constants.PAUSE:
+                        mProgressView.pause();
+                        break;
+                    case Constants.RECOVER:
+                        mProgressView.recover();
+                        break;
+                    case Constants.INTERRUPT:
+                        mProgressView.interrupt();
+                        break;
+                    case Constants.DEFAULT:
+                        break;
+                    default:
+                        mProgressView.setProgress(progress);
+                        break;
+                }
+            }
+        });
     }
 
     class Service implements Runnable {
@@ -51,23 +122,24 @@ public class ServerActivity extends AppCompatActivity {
                     printWriter = new PrintWriter(new BufferedWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8)), true);
                     in = new BufferedReader(new InputStreamReader(
                             client.getInputStream(), StandardCharsets.UTF_8));
-                    printWriter.println("成功连接服务器" + "（服务器发送）");
-                    Log.i(TAG, "成功连接服务器");
+                    printWriter.println("成功连接服务器 from server");
+                    addData("成功连接服务器");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 while (true) {                                   //循环接收、读取 Client 端发送过来的信息
                     String receiveMsg;
                     if ((receiveMsg = in.readLine()) != null) {
-                        Log.i(TAG, "receiveMsg:" + receiveMsg);
-                        if (receiveMsg.equals("0")) {
-                            Log.i(TAG, "客户端请求断开连接");
-                            printWriter.println("服务端断开连接" + "（服务器发送）");
+                        updateProgress(receiveMsg);
+                        addData("receive msg: " + receiveMsg);
+                        if (receiveMsg.equals(Constants.DISCONNECT+"")) {
+                            addData("客户端请求断开连接");
+                            printWriter.println("服务端断开连接 from server");
                             in.close();
                             socket.close();
                             break;
                         } else {
-                            String sendMsg = "我已接收：" + receiveMsg + "（服务器发送）";
+                            String sendMsg = "我已接收：" + receiveMsg + " from server";
                             printWriter.println(sendMsg);           //向 Client 端反馈、发送信息
                         }
                     }
