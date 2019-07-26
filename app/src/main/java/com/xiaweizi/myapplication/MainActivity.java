@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, ClientActivity.class));
             }
         });
-        findViewById(R.id.bt_client).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.bt_server).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, ServerActivity.class));
