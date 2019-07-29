@@ -264,7 +264,7 @@ public class CircleProgressBar extends View {
         return Color.argb(255,red, greed, blue);
     }
 
-    public int getScreenWidth() {
+    private int getScreenWidth() {
         if (mScreenWidth != 0) return mScreenWidth;
         WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
         Point outSize = new Point();
@@ -273,7 +273,7 @@ public class CircleProgressBar extends View {
         return outSize.x;
     }
 
-    public float getActualValue(float srcValue) {
+    private float getActualValue(float srcValue) {
         return srcValue * mScreenWidth / 1080;
     }
 }

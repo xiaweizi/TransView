@@ -39,10 +39,23 @@
         android:textAllCaps="false"
         android:textColor="#000"
         android:textSize="25sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bt_circle_pb"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/bt_server" />
+
+    <Button
+        android:id="@+id/bt_circle_pb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="circle pb"
+        android:textAllCaps="false"
+        android:textColor="#000"
+        android:textSize="25sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/bt_test" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
